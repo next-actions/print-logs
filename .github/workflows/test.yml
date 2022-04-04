@@ -1,0 +1,78 @@
+name: "Test"
+on:
+  push:
+  pull_request:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  action:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Prepare files
+      run: |
+        mkdir -p logs
+        for file in result.log result.err mock_a.log mock_b.log; do
+          echo "${file}-contents" > logs/$file
+        done
+
+    - name: Print logs
+      uses: ./
+      with:
+        files: |
+          logs/result.log
+          logs/result.err
+          logs/mock_a.log
+          logs/mock_b.log
+
+    - name: Print logs - working directory
+      uses: ./
+      with:
+        working-directory: logs
+        files: |
+          result.log
+          result.err
+          mock_a.log
+          mock_b.log
+
+    - name: Print logs - wildcard
+      uses: ./
+      with:
+        files: |
+          logs/*.log
+          logs/result.err
+
+    - name: Print logs - working directory, wildcard
+      uses: ./
+      with:
+        working-directory: logs
+        files: |
+          *.log
+          result.err
+
+    - name: Print logs - single line
+      uses: ./
+      with:
+        files: logs/result.log logs/result.err logs/mock_a.log logs/mock_b.logs
+
+    - name: Print logs - single line, working directory
+      uses: ./
+      with:
+        working-directory: logs
+        files: result.log result.err mock_a.log mock_b.logs
+
+    - name: Print logs - single line, wildcard
+      uses: ./
+      with:
+        files: logs/*.log logs/result.err
+
+    - name: Print logs - single line, wildcard, working directory
+      uses: ./
+      with:
+        working-directory: logs
+        files: '*.log result.err'
